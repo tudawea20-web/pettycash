@@ -15,6 +15,64 @@
         }
     </style>
 </head>
+<script type="module">
+  // මෙන්න මේ විදිහටයි HTML එකකදී import කරන්නේ
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // ඔයාගේ Config එක (මම මාරු කළා)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUMCrxqwTM0UbuT1kPxasKVYDOa5d8LEQ",
+    authDomain: "petty-cash-tudawe.firebaseapp.com",
+    databaseURL: "https://petty-cash-tudawe-default-rtdb.firebaseio.com",
+    projectId: "petty-cash-tudawe",
+    storageBucket: "petty-cash-tudawe.firebasestorage.app",
+    messagingSenderId: "181379897640",
+    appId: "1:181379897640:web:f39b401623de1e3633981d",
+    measurementId: "G-LJZMFCM779"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const pettyCashRef = ref(db, 'records');
+
+  // දත්ත Save කරන Function එක
+  // HTML එකේ Button එකට onclick="saveToFirebase()" කියලා දාන්න
+  window.saveToFirebase = function() {
+      const amt = document.getElementById('amount').value; // Input එකේ ID එක
+      const desc = document.getElementById('description').value; // Input එකේ ID එක
+
+      if(amt && desc) {
+          push(pettyCashRef, {
+              amount: amt,
+              description: desc,
+              date: new Date().toLocaleString()
+          }).then(() => {
+              alert("සාර්ථකව දත්ත ඇතුලත් කළා!");
+              document.getElementById('amount').value = "";
+              document.getElementById('description').value = "";
+          }).catch((err) => {
+              alert("Error: " + err.message);
+          });
+      } else {
+          alert("කරුණාකර සියල්ල පුරවන්න!");
+      }
+  }
+
+  // දත්ත සයිට් එකේ පෙන්වන කොටස
+  onValue(pettyCashRef, (snapshot) => {
+      const data = snapshot.val();
+      const display = document.getElementById('dataDisplay'); // දත්ත පෙන්වන තැන ID එක
+      if(display && data) {
+          display.innerHTML = "";
+          for(let id in data) {
+              const item = data[id];
+              display.innerHTML += `<li>${item.date} - ${item.description}: <b>Rs. ${item.amount}</b></li>`;
+          }
+      }
+  });
+</script>
 <body class="bg-gray-100">
     <nav class="bg-blue-600 text-white shadow-lg">
         <div class="container mx-auto px-4 py-4">
