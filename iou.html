@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IOU Management - Petty Cash</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="firebase-sync.js"></script>
 </head>
 <body class="bg-gray-100">
     <nav class="bg-blue-600 text-white shadow-lg">
@@ -150,6 +151,39 @@
             return user ? `${user}_${key}` : key;
         }
 
+        // Error handling utilities
+        function showErrorAlert(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            errorDiv.textContent = '❌ ' + message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+            console.error(message);
+        }
+
+        function safeJsonParse(jsonStr, defaultValue = null) {
+            try {
+                return JSON.parse(jsonStr);
+            } catch (e) {
+                console.error('JSON parse error:', e);
+                return defaultValue;
+            }
+        }
+
+        function safeLocalStorageSet(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    showErrorAlert('Storage quota exceeded. Please clear old records.');
+                } else {
+                    showErrorAlert('Failed to save data: ' + e.message);
+                }
+                return false;
+            }
+        }
+
         checkAuth();
 
         function formatCurrency(amount) {
@@ -161,11 +195,15 @@
         }
 
         function generateIOUNumber() {
-            const ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
-            const lastNumber = ious.length > 0 ? parseInt(ious[ious.length - 1].number.split('-')[1]) : 0;
-            const prefix = getIOUPrefix();
-            const newNumber = prefix + '-' + String(lastNumber + 1).padStart(5, '0');
-            return newNumber;
+            try {
+                const ious = safeJsonParse(localStorage.getItem(getStorageKey('ious')), []) || [];
+                const lastNumber = ious.length > 0 ? parseInt(ious[ious.length - 1].number.split('-')[1]) : 0;
+                const prefix = getIOUPrefix();
+                return prefix + '-' + String(lastNumber + 1).padStart(5, '0');
+            } catch (error) {
+                console.error('Error generating IOU number:', error);
+                return 'IOU-00001';
+            }
         }
 
         function initializeForm() {
@@ -239,42 +277,67 @@
 
         function markAsSettled(number) {
             if (confirm('Mark this IOU as settled?')) {
-                let ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
-                const today = new Date().toISOString().split('T')[0];
-                ious = ious.map(iou => {
-                    if (iou.number === number) {
-                        iou.settled = true;
-                        iou.settledDate = today;
+                try {
+                    let ious = safeJsonParse(localStorage.getItem(getStorageKey('ious')), []) || [];
+                    const today = new Date().toISOString().split('T')[0];
+                    ious = ious.map(iou => {
+                        if (iou.number === number) {
+                            iou.settled = true;
+                            iou.settledDate = today;
+                        }
+                        return iou;
+                    });
+                    if (!safeLocalStorageSet(getStorageKey('ious'), JSON.stringify(ious))) {
+                        return;
                     }
-                    return iou;
-                });
-                localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
-                displayIOUs();
+                    displayIOUs();
+                } catch (error) {
+                    showErrorAlert('Error marking IOU as settled: ' + error.message);
+                }
             }
         }
 
         function reactivateIOU(number) {
             if (confirm('Reactivate this IOU?')) {
-                let ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
-                ious = ious.map(iou => {
-                    if (iou.number === number) {
-                        iou.settled = false;
-                        iou.settledDate = null;
+                try {
+                    let ious = safeJsonParse(localStorage.getItem(getStorageKey('ious')), []) || [];
+                    ious = ious.map(iou => {
+                        if (iou.number === number) {
+                            iou.settled = false;
+                            iou.settledDate = null;
+                        }
+                        return iou;
+                    });
+                    if (!safeLocalStorageSet(getStorageKey('ious'), JSON.stringify(ious))) {
+                        return;
                     }
-                    return iou;
-                });
-                localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
-                displayIOUs();
+                    displayIOUs();
+                } catch (error) {
+                    showErrorAlert('Error reactivating IOU: ' + error.message);
+                }
             }
         }
 
         function deleteIOU(number) {
             if (confirm('Are you sure you want to delete this IOU?')) {
-                let ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
-                ious = ious.filter(iou => iou.number !== number);
-                localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
-                displayIOUs();
-                document.getElementById('iouNumber').value = generateIOUNumber();
+                try {
+                    let ious = safeJsonParse(localStorage.getItem(getStorageKey('ious')), []) || [];
+                    ious = ious.filter(iou => iou.number !== number);
+                    if (!safeLocalStorageSet(getStorageKey('ious'), JSON.stringify(ious))) {
+                        return;
+                    }
+                    displayIOUs();
+                    document.getElementById('iouNumber').value = generateIOUNumber();
+                    if(window.syncToFirebase) {
+                        try {
+                            window.syncToFirebase();
+                        } catch (syncError) {
+                            console.warn('Firebase sync failed:', syncError);
+                        }
+                    }
+                } catch (error) {
+                    showErrorAlert('Error deleting IOU: ' + error.message);
+                }
             }
         }
 
@@ -318,6 +381,7 @@
             this.reset();
             initializeForm();
             displayIOUs();
+            if(window.syncToFirebase) window.syncToFirebase();
             alert('IOU added successfully!');
         });
 
@@ -387,6 +451,7 @@
                 });
                 localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
                 displayIOUs();
+                if(window.syncToFirebase) window.syncToFirebase();
             }
 
             let message = `✓ Imported: ${successCount} IOUs`;
@@ -405,6 +470,11 @@
         displayIOUs();
         document.getElementById('iouSearch').addEventListener('input', function() {
             displayIOUs(this.value.trim());
+        });
+
+        // refresh when remote data arrives
+        window.addEventListener('firebaseDataUpdated', () => {
+            displayIOUs();
         });
     </script>
 </body>

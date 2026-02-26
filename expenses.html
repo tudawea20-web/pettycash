@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Expenses - Petty Cash</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="firebase-sync.js"></script>
 </head>
 <body class="bg-gray-100">
     <nav class="bg-blue-600 text-white shadow-lg">
@@ -178,6 +179,39 @@
             return user ? `${user}_${key}` : key;
         }
 
+        // Error handling utilities
+        function showErrorAlert(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            errorDiv.textContent = '❌ ' + message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+            console.error(message);
+        }
+
+        function safeJsonParse(jsonStr, defaultValue = null) {
+            try {
+                return JSON.parse(jsonStr);
+            } catch (e) {
+                console.error('JSON parse error:', e);
+                return defaultValue;
+            }
+        }
+
+        function safeLocalStorageSet(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    showErrorAlert('Storage quota exceeded. Please clear old records.');
+                } else {
+                    showErrorAlert('Failed to save data: ' + e.message);
+                }
+                return false;
+            }
+        }
+
         checkAuth();
 
         function formatCurrency(amount) {
@@ -254,14 +288,25 @@
         }
 
         function markAsReimbursed(index) {
-            const allExpenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
-            const activeExpenses = allExpenses.filter(exp => !exp.reimbursed);
-            if (!activeExpenses[index]) return;
-            
-            const actualIndex = allExpenses.findIndex(e => e === activeExpenses[index]);
-            allExpenses[actualIndex].reimbursed = true;
-            allExpenses[actualIndex].reimbursedDate = new Date().toISOString().split('T')[0];
-            localStorage.setItem(getStorageKey('expenses'), JSON.stringify(allExpenses));
+            try {
+                const allExpenses = safeJsonParse(localStorage.getItem(getStorageKey('expenses')), []) || [];
+                const activeExpenses = allExpenses.filter(exp => !exp.reimbursed);
+                if (!activeExpenses[index]) return;
+                
+                const actualIndex = allExpenses.findIndex(e => e === activeExpenses[index]);
+                allExpenses[actualIndex].reimbursed = true;
+                allExpenses[actualIndex].reimbursedDate = new Date().toISOString().split('T')[0];
+                
+                if (!safeLocalStorageSet(getStorageKey('expenses'), JSON.stringify(allExpenses))) {
+                    return;
+                }
+                if(window.syncToFirebase) {
+                    try {
+                        window.syncToFirebase();
+                    } catch (syncError) {
+                        console.warn('Firebase sync failed:', syncError);
+                    }
+                }
 
             // recalc balance change
             const FLOAT_AMOUNT = 250000;
@@ -273,19 +318,33 @@
             const newBalance = FLOAT_AMOUNT - (ious.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0) + newExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
             const diff = newBalance - oldBalance;
 
-            displayExpenses(document.getElementById('filterCategory').value, false);
-            alert(`Expense marked as Reimbursed. Balance ${diff >= 0 ? 'increased' : 'decreased'} by Rs ${Math.abs(diff).toFixed(2)}.`);
+                displayExpenses(document.getElementById('filterCategory').value, false);
+                alert(`Expense marked as Reimbursed. Balance ${diff >= 0 ? 'increased' : 'decreased'} by Rs ${Math.abs(diff).toFixed(2)}.`);
+            } catch (error) {
+                showErrorAlert('Error marking expense as reimbursed: ' + error.message);
+            }
         }
 
         function undoReimbursement(index) {
-            const allExpenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
-            const reimbursedExpenses = allExpenses.filter(exp => exp.reimbursed);
-            if (!reimbursedExpenses[index]) return;
-            
-            const actualIndex = allExpenses.findIndex(e => e === reimbursedExpenses[index]);
-            allExpenses[actualIndex].reimbursed = false;
-            delete allExpenses[actualIndex].reimbursedDate;
-            localStorage.setItem(getStorageKey('expenses'), JSON.stringify(allExpenses));
+            try {
+                const allExpenses = safeJsonParse(localStorage.getItem(getStorageKey('expenses')), []) || [];
+                const reimbursedExpenses = allExpenses.filter(exp => exp.reimbursed);
+                if (!reimbursedExpenses[index]) return;
+                
+                const actualIndex = allExpenses.findIndex(e => e === reimbursedExpenses[index]);
+                allExpenses[actualIndex].reimbursed = false;
+                delete allExpenses[actualIndex].reimbursedDate;
+                
+                if (!safeLocalStorageSet(getStorageKey('expenses'), JSON.stringify(allExpenses))) {
+                    return;
+                }
+                if(window.syncToFirebase) {
+                    try {
+                        window.syncToFirebase();
+                    } catch (syncError) {
+                        console.warn('Firebase sync failed:', syncError);
+                    }
+                }
 
             // recalc balance change
             const FLOAT_AMOUNT = 250000;
@@ -298,19 +357,42 @@
             const newBalance = FLOAT_AMOUNT - (ious.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0) + newExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
             const diff = newBalance - oldBalance;
 
-            displayExpenses(document.getElementById('filterCategory').value, true);
-            alert(`Reimbursement undone. Balance ${diff >= 0 ? 'increased' : 'decreased'} by Rs ${Math.abs(diff).toFixed(2)}.`);
+                displayExpenses(document.getElementById('filterCategory').value, true);
+                alert(`Reimbursement undone. Balance ${diff >= 0 ? 'increased' : 'decreased'} by Rs ${Math.abs(diff).toFixed(2)}.`);
+            } catch (error) {
+                showErrorAlert('Error undoing reimbursement: ' + error.message);
+            }
         }
 
         function deleteExpense(index) {
             if (confirm('Are you sure you want to delete this expense?')) {
-                let expenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
-                const showReimbursed = document.getElementById('showReimbursedToggle')?.checked || false;
-                const filtered = showReimbursed ? expenses.filter(exp => exp.reimbursed) : expenses.filter(exp => !exp.reimbursed);
-                const actualIndex = expenses.indexOf(filtered[index]);
-                expenses.splice(actualIndex, 1);
-                localStorage.setItem(getStorageKey('expenses'), JSON.stringify(expenses));
-                displayExpenses(document.getElementById('filterCategory').value, showReimbursed);
+                try {
+                    let expenses = safeJsonParse(localStorage.getItem(getStorageKey('expenses')), []) || [];
+                    const showReimbursed = document.getElementById('showReimbursedToggle')?.checked || false;
+                    const filtered = showReimbursed ? expenses.filter(exp => exp.reimbursed) : expenses.filter(exp => !exp.reimbursed);
+                    const actualIndex = expenses.indexOf(filtered[index]);
+                    
+                    if (actualIndex === -1) {
+                        showErrorAlert('Expense not found');
+                        return;
+                    }
+                    
+                    expenses.splice(actualIndex, 1);
+                    
+                    if (!safeLocalStorageSet(getStorageKey('expenses'), JSON.stringify(expenses))) {
+                        return;
+                    }
+                    if(window.syncToFirebase) {
+                        try {
+                            window.syncToFirebase();
+                        } catch (syncError) {
+                            console.warn('Firebase sync failed:', syncError);
+                        }
+                    }
+                    displayExpenses(document.getElementById('filterCategory').value, showReimbursed);
+                } catch (error) {
+                    showErrorAlert('Error deleting expense: ' + error.message);
+                }
             }
         }
 
@@ -343,43 +425,62 @@
         document.getElementById('expenseForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const expense = {
-                date: document.getElementById('expenseDate').value,
-                category: document.getElementById('category').value,
-                description: document.getElementById('description').value,
-                amount: parseFloat(document.getElementById('amount').value),
-                vendor: document.getElementById('vendor').value,
-                receipt: document.getElementById('receipt').value,
-                reimbursed: false
-            };
+            try {
+                const expense = {
+                    date: document.getElementById('expenseDate').value,
+                    category: document.getElementById('category').value,
+                    description: document.getElementById('description').value,
+                    amount: parseFloat(document.getElementById('amount').value),
+                    vendor: document.getElementById('vendor').value,
+                    receipt: document.getElementById('receipt').value,
+                    reimbursed: false
+                };
 
-            let expenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
-            expenses.push(expense);
-            localStorage.setItem(getStorageKey('expenses'), JSON.stringify(expenses));
+                if (!expense.date || !expense.category || !expense.description || isNaN(expense.amount) || expense.amount <= 0) {
+                    showErrorAlert('Please fill all fields with valid values');
+                    return;
+                }
 
-            // Show balance update alert
-            const FLOAT_AMOUNT = 250000;
-            const ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
-            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
-            const activeExpenses = expenses.filter(exp => !exp.reimbursed);
-            const oldBalance = FLOAT_AMOUNT - (ious.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0) + activeExpenses.slice(0, -1).reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
-            const newBalance = FLOAT_AMOUNT - (ious.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0) + activeExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
-            const difference = oldBalance - newBalance;
+                let expenses = safeJsonParse(localStorage.getItem(getStorageKey('expenses')), []) || [];
+                expenses.push(expense);
+                
+                if (!safeLocalStorageSet(getStorageKey('expenses'), JSON.stringify(expenses))) {
+                    return;
+                }
 
-            const alertDiv = document.getElementById('balanceAlert');
-            const alertText = document.getElementById('balanceUpdateText');
-            alertText.textContent = `New expense (Rs ${expense.amount.toFixed(2)}) added. Balance reduced by Rs ${difference.toFixed(2)}.`;
-            alertDiv.classList.remove('hidden');
-            
-            // Hide alert after 5 seconds
-            setTimeout(() => {
-                alertDiv.classList.add('hidden');
-            }, 5000);
+                if(window.syncToFirebase) {
+                    try {
+                        window.syncToFirebase();
+                    } catch (syncError) {
+                        console.warn('Firebase sync failed:', syncError);
+                    }
+                }
 
-            this.reset();
-            initializeForm();
-            displayExpenses();
-            alert('Expense recorded successfully!');
+                // Show balance update alert
+                const FLOAT_AMOUNT = 250000;
+                const ious = safeJsonParse(localStorage.getItem(getStorageKey('ious')), []) || [];
+                const invoices = safeJsonParse(localStorage.getItem(getStorageKey('invoices')), []) || [];
+                const activeExpenses = expenses.filter(exp => !exp.reimbursed);
+                const oldBalance = FLOAT_AMOUNT - (ious.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0) + activeExpenses.slice(0, -1).reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
+                const newBalance = FLOAT_AMOUNT - (ious.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0) + activeExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
+                const difference = oldBalance - newBalance;
+
+                const alertDiv = document.getElementById('balanceAlert');
+                const alertText = document.getElementById('balanceUpdateText');
+                alertText.textContent = `New expense (Rs ${expense.amount.toFixed(2)}) added. Balance reduced by Rs ${difference.toFixed(2)}.`;
+                alertDiv.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    alertDiv.classList.add('hidden');
+                }, 5000);
+
+                this.reset();
+                initializeForm();
+                displayExpenses();
+                alert('Expense recorded successfully!');
+            } catch (error) {
+                showErrorAlert('Error recording expense: ' + error.message);
+            }
         });
 
         document.getElementById('filterCategory').addEventListener('change', function() {
@@ -475,6 +576,11 @@
         // Initialize on load
         initializeForm();
         displayExpenses();
+
+        // refresh when remote data arrives
+        window.addEventListener('firebaseDataUpdated', () => {
+            displayExpenses();
+        });
     </script>
 </body>
 </html>

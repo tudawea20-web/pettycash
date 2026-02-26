@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - Petty Cash</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="firebase-sync.js"></script>
 </head>
 <body class="bg-gray-100">
     <nav class="bg-blue-600 text-white shadow-lg">
@@ -125,6 +126,7 @@
                 if (confirmation === 'CONFIRM') {
                     localStorage.clear();
                     alert('All data has been deleted!');
+                    if(window.syncToFirebase) window.syncToFirebase();
                     location.reload();
                 } else {
                     alert('Deletion cancelled.');
@@ -156,10 +158,16 @@
 
             alert('Settings saved successfully! New documents will use the updated prefixes.');
             updateExamples();
+            if(window.syncToFirebase) window.syncToFirebase();
         });
 
         // Load settings on page load
         loadSettings();
+
+        // if data changed remotely we don't really have dynamic UI here but still
+        window.addEventListener('firebaseDataUpdated', () => {
+            loadSettings();
+        });
     </script>
 </body>
 </html>

@@ -504,77 +504,16 @@
         window.exportInvoiceCSV = exportInvoiceCSV;
         window.exportCashCountCSV = exportCashCountCSV;
         window.exportAllBackup = exportAllBackup;
+
+        // if remote data changes, update dashboard immediately
+        window.addEventListener('firebaseDataUpdated', () => {
+            if (typeof updateDashboard === 'function') {
+                updateDashboard();
+            }
+        });
     </script>
 
-    <!-- Firebase Cloud Sync Integration -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAUMCrxqwTM0UbuT1kPxasKVYDOa5d8LEQ",
-            authDomain: "petty-cash-tudawe.firebaseapp.com",
-            databaseURL: "https://petty-cash-tudawe-default-rtdb.firebaseio.com",
-            projectId: "petty-cash-tudawe",
-            storageBucket: "petty-cash-tudawe.firebasestorage.app",
-            messagingSenderId: "181379897640",
-            appId: "1:181379897640:web:f39b401623de1e3633981d",
-            measurementId: "G-LJZMFCM779"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Sync local data to Firebase
-        window.syncToFirebase = function() {
-            const user = localStorage.getItem('_pettycash_currentUser');
-            if (!user) return;
-
-            const userRef = ref(db, `users/${user}`);
-            const syncData = {
-                ious: JSON.parse(localStorage.getItem(`${user}_ious`) || '[]'),
-                expenses: JSON.parse(localStorage.getItem(`${user}_expenses`) || '[]'),
-                invoices: JSON.parse(localStorage.getItem(`${user}_invoices`) || '[]'),
-                cashCounts: JSON.parse(localStorage.getItem(`${user}_cashCounts`) || '[]'),
-                lastSyncDate: new Date().toISOString()
-            };
-
-            set(userRef, syncData).then(() => {
-                console.log('Data synced to Firebase successfully');
-            }).catch((error) => {
-                console.error('Sync error:', error);
-            });
-        }
-
-        // Listen for Firebase updates and apply to local storage
-        window.listenToFirebaseUpdates = function() {
-            const user = localStorage.getItem('_pettycash_currentUser');
-            if (!user) return;
-
-            const userRef = ref(db, `users/${user}`);
-            onValue(userRef, (snapshot) => {
-                const remoteData = snapshot.val();
-                if (remoteData && remoteData.lastSyncDate) {
-                    localStorage.setItem(`${user}_ious`, JSON.stringify(remoteData.ious || []));
-                    localStorage.setItem(`${user}_expenses`, JSON.stringify(remoteData.expenses || []));
-                    localStorage.setItem(`${user}_invoices`, JSON.stringify(remoteData.invoices || []));
-                    localStorage.setItem(`${user}_cashCounts`, JSON.stringify(remoteData.cashCounts || []));
-                    console.log('Local data updated from Firebase');
-                    // Silently update dashboard without reloading
-                    if (window.updateDashboard) {
-                        window.updateDashboard();
-                    }
-                }
-            });
-        }
-
-        // Auto-sync every 30 seconds
-        setInterval(() => {
-            window.syncToFirebase();
-        }, 30000);
-
-        // Initial listen
-        window.listenToFirebaseUpdates();
-    </script>
+    <!-- Firebase Cloud Sync Integration (shared module) -->
+    <script type="module" src="firebase-sync.js"></script>
 </body>
 </html>

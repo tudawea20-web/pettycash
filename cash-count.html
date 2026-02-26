@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Cash Count - Petty Cash</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="firebase-sync.js"></script>
 </head>
 <body class="bg-gray-100">
     <nav class="bg-blue-600 text-white shadow-lg">
@@ -452,6 +453,12 @@
             displayHistory(this.value.trim());
         });
         displayPaidInvoices();
+
+        // refresh when remote data arrives
+        window.addEventListener('firebaseDataUpdated', () => {
+            displayHistory();
+            displayPaidInvoices();
+        });
         
         // Set bulk import date to today
         document.getElementById('bulkDate').valueAsDate = new Date();
