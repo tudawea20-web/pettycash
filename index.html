@@ -560,7 +560,10 @@
                     localStorage.setItem(`${user}_invoices`, JSON.stringify(remoteData.invoices || []));
                     localStorage.setItem(`${user}_cashCounts`, JSON.stringify(remoteData.cashCounts || []));
                     console.log('Local data updated from Firebase');
-                    location.reload();
+                    // Silently update dashboard without reloading
+                    if (window.updateDashboard) {
+                        window.updateDashboard();
+                    }
                 }
             });
         }
