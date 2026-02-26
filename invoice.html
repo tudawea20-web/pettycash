@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Cash Invoice - Petty Cash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">Tudawe Trading Co(Pvt)Ltd</h1>
+                    <p class="text-sm text-blue-200">Daily Cash Invoice</p>
+                </div>
+                <a href="index.html" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded font-semibold">← Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Add Invoice Form -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Create Cash Invoice</h2>
+            <div class="mb-4">
+                <input type="text" id="invoiceSearch" placeholder="Search invoices..." class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+            </div>
+            
+            <form id="invoiceForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Invoice Number</label>
+                        <input type="text" id="invoiceNumber" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100" placeholder="Auto-generated">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                        <input type="date" id="invoiceDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Customer Name *</label>
+                        <input type="text" id="customerName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Enter customer name">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Amount (Rs) *</label>
+                        <input type="number" id="amount" required step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Payment Method</label>
+                        <select id="paymentMethod" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="Cash">Cash</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                        <select id="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="Pending Deposit">Pending Deposit</option>
+                            <option value="Deposited">Deposited</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Description/Items</label>
+                        <textarea id="description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="List items or description..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">+ Create Invoice</button>
+            </form>
+        </div>
+
+        <!-- Bulk Import Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8 border-2 border-blue-300">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">📥 Bulk Import Invoices</h2>
+            <p class="text-gray-600 mb-4">Import multiple invoices at once. Format: Date | Invoice# | Amount | Receipt | Status (comma-separated per line)</p>
+            
+            <form id="bulkImportForm" class="space-y-4">
+                <textarea id="bulkData" rows="10" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm" placeholder="14/02/2026,INV-127907,47246.47,REB140096,Paid&#10;14/02/2026,INV-127909,497440.00,REB140097,Paid&#10;14/02/2026,INV-127911,5370.00,REB140101,Paid"></textarea>
+                <div class="bg-blue-50 p-3 rounded text-sm text-gray-700">
+                    <p><strong>Format:</strong> Date,Invoice#,Amount,Receipt,Status</p>
+                    <p><strong>Example:</strong> 14/02/2026,INV-127907,47246.47,REB140096,Pending</p>
+                    <p><strong>Status options:</strong> Pending Deposit, Deposited</p>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">↑ Import Multiple Invoices</button>
+            </form>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
+                        <select id="filterStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">All Status</option>
+                        <option value="Pending Deposit">Pending Deposit</option>
+                        <option value="Deposited">Deposited</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button onclick="printInvoices()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg">🖨️ Print List</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoices List -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Invoice List</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-blue-100 border-b-2 border-blue-600">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Invoice #</th>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Customer</th>
+                            <th class="px-4 py-3 text-left">Payment</th>
+                            <th class="px-4 py-3 text-right">Amount</th>
+                            <th class="px-4 py-3 text-center">Status</th>
+                            <th class="px-4 py-3 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesList">
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">No invoices created yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="p-4 bg-blue-50 border-l-4 border-blue-600 rounded">
+                    <p class="text-gray-700"><span class="font-bold">Total Invoices:</span></p>
+                    <p id="totalInvoices" class="text-2xl font-bold text-blue-600">Rs 0.00</p>
+                </div>
+                <div class="p-4 bg-green-50 border-l-4 border-green-600 rounded">
+                    <p class="text-gray-700"><span class="font-bold">Total Deposited:</span></p>
+                    <p id="totalPaid" class="text-2xl font-bold text-green-600">Rs 0.00</p>
+                </div>
+                <div class="p-4 bg-orange-50 border-l-4 border-orange-600 rounded">
+                    <p class="text-gray-700"><span class="font-bold">Total Pending:</span></p>
+                    <p id="totalPending" class="text-2xl font-bold text-orange-600">Rs 0.00</p>
+                </div>
+                <div class="p-4 bg-purple-50 border-l-4 border-purple-600 rounded">
+                    <p class="text-gray-700"><span class="font-bold">Remaining Float:</span></p>
+                    <p id="remainingFloat" class="text-2xl font-bold text-purple-600">Rs 250,000.00</p>
+                </div>
+            </div>
+
+            <!-- Balance Update Alert -->
+            <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-600 rounded hidden" id="balanceAlert">
+                <p class="text-yellow-900"><strong>⚡ Balance Updated!</strong> <span id="balanceUpdateText"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auth check
+        function checkAuth() {
+            const user = localStorage.getItem('_pettycash_currentUser');
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        function getStorageKey(key) {
+            const user = localStorage.getItem('_pettycash_currentUser');
+            return user ? `${user}_${key}` : key;
+        }
+
+        checkAuth();
+
+        const FLOAT_AMOUNT = 250000;
+
+        function formatCurrency(amount) {
+            return 'Rs ' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function getInvoicePrefix() {
+            return localStorage.getItem(getStorageKey('invoicePrefix')) || 'INV';
+        }
+
+        function generateInvoiceNumber() {
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            const lastNumber = invoices.length > 0 ? parseInt(invoices[invoices.length - 1].number.split('-')[1]) : 0;
+            const prefix = getInvoicePrefix();
+            const newNumber = prefix + '-' + String(lastNumber + 1).padStart(5, '0');
+            return newNumber;
+        }
+
+        function initializeForm() {
+            document.getElementById('invoiceNumber').value = generateInvoiceNumber();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('invoiceDate').value = today;
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'Pending Deposit': return 'bg-yellow-100 text-yellow-800';
+                case 'Deposited': return 'bg-indigo-100 text-indigo-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function displayInvoices(filterStatus = '', searchTerm = '') {
+            let invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                invoices = invoices.filter(inv => inv.number.toLowerCase().includes(term) || inv.customerName.toLowerCase().includes(term));
+            }
+            if (filterStatus) {
+                invoices = invoices.filter(inv => inv.status === filterStatus);
+            }
+            
+            if (filterStatus) {
+                invoices = invoices.filter(inv => inv.status === filterStatus);
+            }
+
+            const tbody = document.getElementById('invoicesList');
+
+            if (invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No invoices created yet</td></tr>';
+                updateSummary([]);
+                return;
+            }
+
+            let total = 0;
+            tbody.innerHTML = invoices.map((inv, index) => {
+                total += parseFloat(inv.amount || 0);
+                return `
+                    <tr class="border-b hover:bg-blue-50">
+                        <td class="px-4 py-3 font-semibold text-blue-600">${inv.number}</td>
+                        <td class="px-4 py-3">${inv.date}</td>
+                        <td class="px-4 py-3 font-semibold">${inv.customerName}</td>
+                        <td class="px-4 py-3 text-sm">${inv.paymentMethod}</td>
+                        <td class="px-4 py-3 text-right font-bold">${formatCurrency(inv.amount)}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="px-2 py-1 rounded text-xs font-semibold ${getStatusColor(inv.status)}">${inv.status}</span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="viewInvoice(${index})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs mr-1">View</button>
+
+                            ${inv.status === 'Pending Deposit' ? `<button onclick="completeDeposit(${index})" class="bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded text-xs mr-1">Deposit Now</button>` : ''}
+                            ${inv.status === 'Deposited' ? `<button onclick="undoDeposit(${index})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs mr-1">Undo Deposit</button>` : ''}
+                            <button onclick="deleteInvoice(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('totalInvoices').textContent = formatCurrency(total);
+            updateSummary(invoices);
+        }
+
+        function updateSummary(invoices) {
+            const allInvoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            const expenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
+            const ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+            
+            let totalDeposited = 0;
+            let totalPending = 0;
+            let totalInvoiced = 0;
+
+            allInvoices.forEach(inv => {
+                totalInvoiced += parseFloat(inv.amount || 0);
+                if (inv.status === 'Deposited') {
+                    totalDeposited += parseFloat(inv.amount);
+                } else if (inv.status === 'Pending Deposit') {
+                    totalPending += parseFloat(inv.amount);
+                }
+            });
+
+            const totalExpenses = expenses.filter(exp => !exp.reimbursed).reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+            const totalIOUs = ious.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0);
+            const pendingInvoices = allInvoices.filter(inv => inv.status === 'Pending' || inv.status === 'Pending Deposit');
+            const totalPendingInvoices = pendingInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+            const remaining = FLOAT_AMOUNT - totalIOUs - totalExpenses + totalPendingInvoices;
+
+            document.getElementById('totalPaid').textContent = formatCurrency(totalDeposited);
+            document.getElementById('totalPending').textContent = formatCurrency(totalPending);
+            document.getElementById('remainingFloat').textContent = formatCurrency(remaining);
+        }
+
+        function deleteInvoice(index) {
+            if (confirm('Are you sure you want to delete this invoice?')) {
+                let invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+                invoices.splice(index, 1);
+                localStorage.setItem(getStorageKey('invoices'), JSON.stringify(invoices));
+                displayInvoices(document.getElementById('filterStatus').value);
+            }
+        }
+
+
+
+        function completeDeposit(index) {
+            let invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            if (!invoices[index]) return;
+            invoices[index].status = 'Deposited';
+            invoices[index].depositedDate = new Date().toISOString().split('T')[0];
+            localStorage.setItem(getStorageKey('invoices'), JSON.stringify(invoices));
+            displayInvoices(document.getElementById('filterStatus').value);
+            alert('Invoice marked as Deposited. It will be excluded from cash-count paid list.');
+        }
+
+        function undoDeposit(index) {
+            let invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            if (!invoices[index]) return;
+            invoices[index].status = 'Pending Deposit';
+            delete invoices[index].depositedDate;
+            // keep previous pendingDepositDate if any
+            localStorage.setItem(getStorageKey('invoices'), JSON.stringify(invoices));
+            displayInvoices(document.getElementById('filterStatus').value);
+            alert('Deposit undone. Invoice is now back to Pending Deposit.');
+        }
+
+        function viewInvoice(index) {
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            const inv = invoices[index];
+            let msg = `Invoice: ${inv.number}\nCustomer: ${inv.customerName}\nAmount: ${formatCurrency(inv.amount)}\nStatus: ${inv.status}`;
+            if (inv.depositedDate) msg += `\nDeposited Date: ${inv.depositedDate}`;
+            msg += `\nDescription: ${inv.description || ''}`;
+            alert(msg);
+        }
+
+        function printInvoices() {
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            if (invoices.length === 0) {
+                alert('No invoices to print!');
+                return;
+            }
+
+            let html = '<h2>Daily Cash Invoice Report - Tudawe Trading</h2>';
+            html += '<p>Date: ' + new Date().toLocaleDateString() + '</p>';
+            html += '<table border="1" cellpadding="5">';
+            html += '<tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Amount</th><th>Status</th></tr>';
+            
+            let total = 0;
+            invoices.forEach(inv => {
+                total += parseFloat(inv.amount);
+                html += `<tr><td>${inv.number}</td><td>${inv.date}</td><td>${inv.customerName}</td><td>${formatCurrency(inv.amount)}</td><td>${inv.status}</td></tr>`;
+            });
+            html += `<tr><td colspan="3" style="text-align:right;"><b>Total:</b></td><td><b>${formatCurrency(total)}</b></td><td></td></tr>`;
+            html += '</table>';
+
+            const w = window.open('', '', 'height=500,width=900');
+            w.document.write(html);
+            w.document.close();
+            w.print();
+        }
+
+        document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const invoice = {
+                number: document.getElementById('invoiceNumber').value,
+                date: document.getElementById('invoiceDate').value,
+                customerName: document.getElementById('customerName').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                paymentMethod: document.getElementById('paymentMethod').value,
+                status: document.getElementById('status').value,
+                description: document.getElementById('description').value
+            };
+
+            let invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            invoices.push(invoice);
+            localStorage.setItem(getStorageKey('invoices'), JSON.stringify(invoices));
+
+            // Show balance update alert
+            const oldBalance = FLOAT_AMOUNT - (JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]').reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0) + JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]').reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.slice(0, -1).reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
+            const newBalance = FLOAT_AMOUNT - (JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]').reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0) + JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]').reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
+            const difference = oldBalance - newBalance;
+
+            const alertDiv = document.getElementById('balanceAlert');
+            const alertText = document.getElementById('balanceUpdateText');
+            alertText.textContent = `New invoice (Rs ${invoice.amount.toFixed(2)}) added. Balance reduced by Rs ${difference.toFixed(2)}.`;
+            alertDiv.classList.remove('hidden');
+            
+            // Hide alert after 5 seconds
+            setTimeout(() => {
+                alertDiv.classList.add('hidden');
+            }, 5000);
+
+            this.reset();
+            initializeForm();
+            displayInvoices();
+            alert('Invoice created successfully!');
+        });
+
+        document.getElementById('filterStatus').addEventListener('change', function() {
+            displayInvoices(this.value, document.getElementById('invoiceSearch').value.trim());
+        });
+
+        document.getElementById('invoiceSearch').addEventListener('input', function() {
+            displayInvoices(document.getElementById('filterStatus').value, this.value.trim());
+        });
+
+        // Bulk Import Handler
+        document.getElementById('bulkImportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const bulkData = document.getElementById('bulkData').value.trim();
+            if (!bulkData) {
+                alert('Please paste data to import');
+                return;
+            }
+
+            const lines = bulkData.split('\n').filter(line => line.trim());
+            let successCount = 0;
+            let errorCount = 0;
+            let invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+
+            lines.forEach((line, index) => {
+                try {
+                    const parts = line.split(',').map(p => p.trim());
+                    
+                    if (parts.length < 5) {
+                        console.warn(`Line ${index + 1}: Invalid format`);
+                        errorCount++;
+                        return;
+                    }
+
+                    const [dateStr, invoiceNum, amountStr, receipt, status] = parts;
+                    const amount = parseFloat(amountStr);
+
+                    if (!dateStr || !invoiceNum || isNaN(amount) || !status) {
+                        errorCount++;
+                        return;
+                    }
+
+                    // Validate status
+                    if (!['Pending Deposit', 'Deposited'].includes(status)) {
+                        errorCount++;
+                        return;
+                    }
+
+                    // Convert DD/MM/YYYY to YYYY-MM-DD
+                    const dateParts = dateStr.split('/');
+                    if (dateParts.length !== 3) {
+                        errorCount++;
+                        return;
+                    }
+                    const date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+                    // Check if invoice already exists
+                    if (invoices.some(inv => inv.number === invoiceNum)) {
+                        console.warn(`Line ${index + 1}: Invoice ${invoiceNum} already exists`);
+                        errorCount++;
+                        return;
+                    }
+
+                    const invoice = {
+                        number: invoiceNum,
+                        date: date,
+                        customerName: 'Imported',
+                        amount: amount,
+                        paymentMethod: 'Cash',
+                        status: status,
+                        description: receipt || ''
+                    };
+
+                    invoices.push(invoice);
+                    successCount++;
+                } catch (error) {
+                    console.error(`Line ${index + 1} error:`, error);
+                    errorCount++;
+                }
+            });
+
+            if (successCount > 0) {
+                invoices.sort((a, b) => {
+                    const numA = parseInt(a.number.split('-')[1]) || 0;
+                    const numB = parseInt(b.number.split('-')[1]) || 0;
+                    return numA - numB;
+                });
+                localStorage.setItem('invoices', JSON.stringify(invoices));
+                displayInvoices();
+            }
+
+            let message = `✓ Imported: ${successCount} Invoices`;
+            if (errorCount > 0) {
+                message += `\n⚠️ Errors: ${errorCount} lines`;
+            }
+            alert(message);
+
+            if (successCount > 0) {
+                document.getElementById('bulkData').value = '';
+            }
+        });
+
+        // Initialize on load
+        initializeForm();
+        displayInvoices();
+    </script>
+</body>
+</html>

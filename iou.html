@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IOU Management - Petty Cash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">Tudawe Trading Co(Pvt)Ltd</h1>
+                    <p class="text-sm text-blue-200">IOU Management</p>
+                </div>
+                <a href="index.html" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded font-semibold">← Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Add IOU Form -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New IOU</h2>
+            <div class="mb-4">
+                <input type="text" id="iouSearch" placeholder="Filter IOUs by number or name" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+            </div>
+            
+            <form id="iouForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">IOU Number</label>
+                        <input type="text" id="iouNumber" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100" placeholder="Auto-generated">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                        <input type="date" id="iouDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Person/Vendor Name *</label>
+                        <input type="text" id="personName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Enter name">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Amount (Rs) *</label>
+                        <input type="number" id="amount" required step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="0.00">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Description/Reason</label>
+                        <textarea id="description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Enter details"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition">+ Add IOU</button>
+            </form>
+        </div>
+
+        <!-- Bulk Import Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8 border-2 border-blue-300">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">📥 Bulk Import IOUs</h2>
+            <p class="text-gray-600 mb-4">Import multiple IOUs at once. Format: Date | Number | Person Name | Amount (comma-separated per line)</p>
+            
+            <form id="bulkImportForm" class="space-y-4">
+                <textarea id="bulkData" rows="8" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm" placeholder="07/04/2025,IOU-4217,CHANNA (MR ESHAN),20000.00&#10;19/08/2025,IOU-4441,JANAKA,7000.00&#10;29/08/2025,IOU-4458,MANESH,4000.00"></textarea>
+                <div class="bg-blue-50 p-3 rounded text-sm text-gray-700">
+                    <p><strong>Format:</strong> Date,IOU-Number,Person Name,Amount</p>
+                    <p><strong>Example:</strong> 07/04/2025,IOU-4217,CHANNA (MR ESHAN),20000.00</p>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">↑ Import Multiple IOUs</button>
+            </form>
+        </div>
+
+        <!-- IOUs List -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">IOU List</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-orange-100 border-b-2 border-orange-600">
+                        <tr>
+                            <th class="px-4 py-3 text-left">IOU #</th>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Person/Vendor</th>
+                            <th class="px-4 py-3 text-left">Description</th>
+                            <th class="px-4 py-3 text-right">Amount</th>
+                            <th class="px-4 py-3 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="iousList">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">No IOUs added yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 p-4 bg-orange-50 border-l-4 border-orange-600 rounded">
+                <p class="text-gray-700"><span class="font-bold">Total IOUs (Active):</span> <span id="totalIOUs" class="text-lg font-bold text-orange-600">Rs 0.00</span></p>
+                <p class="text-gray-700 mt-2"><span class="font-bold">Settled IOUs:</span> <span id="settledCount" class="text-lg font-bold text-green-600">0</span></p>
+            </div>
+
+            <!-- Balance Update Alert -->
+            <div class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-600 rounded hidden" id="balanceAlert">
+                <p class="text-yellow-900"><strong>⚡ Balance Updated!</strong> <span id="balanceUpdateText"></span></p>
+            </div>
+
+            <!-- Settled IOUs Section -->
+            <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">✓ Settled IOUs (Archived)</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-green-100 border-b-2 border-green-600">
+                            <tr>
+                                <th class="px-4 py-3 text-left">IOU #</th>
+                                <th class="px-4 py-3 text-left">Date</th>
+                                <th class="px-4 py-3 text-left">Person/Vendor</th>
+                                <th class="px-4 py-3 text-left">Description</th>
+                                <th class="px-4 py-3 text-right">Amount</th>
+                                <th class="px-4 py-3 text-left">Settled Date</th>
+                                <th class="px-4 py-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="settledIOUsList">
+                            <tr>
+                                <td colspan="7" class="px-4 py-8 text-center text-gray-500">No settled IOUs yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auth check
+        function checkAuth() {
+            const user = localStorage.getItem('_pettycash_currentUser');
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        function getStorageKey(key) {
+            const user = localStorage.getItem('_pettycash_currentUser');
+            return user ? `${user}_${key}` : key;
+        }
+
+        checkAuth();
+
+        function formatCurrency(amount) {
+            return 'Rs ' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function getIOUPrefix() {
+            return localStorage.getItem(getStorageKey('iouPrefix')) || 'IOU';
+        }
+
+        function generateIOUNumber() {
+            const ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+            const lastNumber = ious.length > 0 ? parseInt(ious[ious.length - 1].number.split('-')[1]) : 0;
+            const prefix = getIOUPrefix();
+            const newNumber = prefix + '-' + String(lastNumber + 1).padStart(5, '0');
+            return newNumber;
+        }
+
+        function initializeForm() {
+            document.getElementById('iouNumber').value = generateIOUNumber();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('iouDate').value = today;
+        }
+
+        function displayIOUs(searchTerm = '') {
+            const allIOUs = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+            const ious = allIOUs.filter(iou => {
+                if (!searchTerm) return true;
+                const term = searchTerm.toLowerCase();
+                return iou.number.toLowerCase().includes(term) || iou.personName.toLowerCase().includes(term);
+            });
+            const tbody = document.getElementById('iousList');
+            const settledTbody = document.getElementById('settledIOUsList');
+
+            // Filter active (not settled) IOUs
+            const activeIOUs = ious.filter(iou => !iou.settled);
+            const settledIOUs = ious.filter(iou => iou.settled);
+
+            // Display Active IOUs
+            if (activeIOUs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No active IOUs</td></tr>';
+                document.getElementById('totalIOUs').textContent = 'Rs 0.00';
+            } else {
+                let total = 0;
+                tbody.innerHTML = activeIOUs.map(iou => {
+                    total += parseFloat(iou.amount || 0);
+                    return `
+                        <tr class="border-b hover:bg-orange-50">
+                            <td class="px-4 py-3 font-semibold text-orange-600">${iou.number}</td>
+                            <td class="px-4 py-3">${iou.date}</td>
+                            <td class="px-4 py-3 font-semibold">${iou.personName}</td>
+                            <td class="px-4 py-3 text-gray-600">${iou.description}</td>
+                            <td class="px-4 py-3 text-right font-bold">${formatCurrency(iou.amount)}</td>
+                            <td class="px-4 py-3 text-center">
+                                <button onclick="markAsSettled('${iou.number}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs mr-2">Settle</button>
+                                <button onclick="deleteIOU('${iou.number}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                document.getElementById('totalIOUs').textContent = formatCurrency(total);
+            }
+
+            // Display Settled IOUs
+            document.getElementById('settledCount').textContent = settledIOUs.length;
+            if (settledIOUs.length === 0) {
+                settledTbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No settled IOUs yet</td></tr>';
+            } else {
+                settledTbody.innerHTML = settledIOUs.map(iou => {
+                    return `
+                        <tr class="border-b hover:bg-green-50 opacity-75">
+                            <td class="px-4 py-3 font-semibold text-green-600 line-through">${iou.number}</td>
+                            <td class="px-4 py-3">${iou.date}</td>
+                            <td class="px-4 py-3 font-semibold">${iou.personName}</td>
+                            <td class="px-4 py-3 text-gray-600">${iou.description}</td>
+                            <td class="px-4 py-3 text-right font-bold">${formatCurrency(iou.amount)}</td>
+                            <td class="px-4 py-3 text-green-600 font-semibold">${iou.settledDate || '-'}</td>
+                            <td class="px-4 py-3 text-center">
+                                <button onclick="reactivateIOU('${iou.number}')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs mr-2">Reactivate</button>
+                                <button onclick="deleteIOU('${iou.number}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function markAsSettled(number) {
+            if (confirm('Mark this IOU as settled?')) {
+                let ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+                const today = new Date().toISOString().split('T')[0];
+                ious = ious.map(iou => {
+                    if (iou.number === number) {
+                        iou.settled = true;
+                        iou.settledDate = today;
+                    }
+                    return iou;
+                });
+                localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
+                displayIOUs();
+            }
+        }
+
+        function reactivateIOU(number) {
+            if (confirm('Reactivate this IOU?')) {
+                let ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+                ious = ious.map(iou => {
+                    if (iou.number === number) {
+                        iou.settled = false;
+                        iou.settledDate = null;
+                    }
+                    return iou;
+                });
+                localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
+                displayIOUs();
+            }
+        }
+
+        function deleteIOU(number) {
+            if (confirm('Are you sure you want to delete this IOU?')) {
+                let ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+                ious = ious.filter(iou => iou.number !== number);
+                localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
+                displayIOUs();
+                document.getElementById('iouNumber').value = generateIOUNumber();
+            }
+        }
+
+        document.getElementById('iouForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const iou = {
+                number: document.getElementById('iouNumber').value,
+                date: document.getElementById('iouDate').value,
+                personName: document.getElementById('personName').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                description: document.getElementById('description').value,
+                settled: false,
+                settledDate: null
+            };
+
+            let ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+            ious.push(iou);
+            localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
+
+            // Show balance update alert
+            const FLOAT_AMOUNT = 250000;
+            const expenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]').filter(exp => !exp.reimbursed);
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            const activeIOUs = ious.filter(i => !i.settled);
+            const oldBalance = FLOAT_AMOUNT - (activeIOUs.slice(0, -1).reduce((sum, i) => sum + parseFloat(i.amount || 0), 0) + expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
+            const newBalance = FLOAT_AMOUNT - (activeIOUs.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0) + expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) - invoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0));
+            const difference = oldBalance - newBalance;
+
+            const alertDiv = document.getElementById('balanceAlert');
+            const alertText = document.getElementById('balanceUpdateText');
+            alertText.textContent = `New IOU (Rs ${iou.amount.toFixed(2)}) added. Balance reduced by Rs ${difference.toFixed(2)}.`;
+            alertDiv.classList.remove('hidden');
+            
+            // Hide alert after 5 seconds
+            setTimeout(() => {
+                alertDiv.classList.add('hidden');
+            }, 5000);
+
+            // Reset form
+            this.reset();
+            initializeForm();
+            displayIOUs();
+            alert('IOU added successfully!');
+        });
+
+        // Bulk Import Handler
+        document.getElementById('bulkImportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const bulkData = document.getElementById('bulkData').value.trim();
+            if (!bulkData) {
+                alert('Please paste data to import');
+                return;
+            }
+
+            const lines = bulkData.split('\n').filter(line => line.trim());
+            let successCount = 0;
+            let errorCount = 0;
+            let ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+
+            lines.forEach((line, index) => {
+                try {
+                    const parts = line.split(',').map(p => p.trim());
+                    
+                    if (parts.length < 4) {
+                        console.warn(`Line ${index + 1}: Invalid format`);
+                        errorCount++;
+                        return;
+                    }
+
+                    const [date, number, personName, amountStr] = parts;
+                    const amount = parseFloat(amountStr);
+
+                    if (!date || !number || !personName || isNaN(amount)) {
+                        errorCount++;
+                        return;
+                    }
+
+                    // Check if IOU already exists
+                    if (ious.some(iou => iou.number === number)) {
+                        console.warn(`Line ${index + 1}: IOU ${number} already exists`);
+                        errorCount++;
+                        return;
+                    }
+
+                    const iou = {
+                        date: date,
+                        number: number,
+                        personName: personName,
+                        amount: amount,
+                        description: '',
+                        settled: false,
+                        settledDate: null
+                    };
+
+                    ious.push(iou);
+                    successCount++;
+                } catch (error) {
+                    console.error(`Line ${index + 1} error:`, error);
+                    errorCount++;
+                }
+            });
+
+            if (successCount > 0) {
+                ious.sort((a, b) => {
+                    const numA = parseInt(a.number.split('-')[1]) || 0;
+                    const numB = parseInt(b.number.split('-')[1]) || 0;
+                    return numA - numB;
+                });
+                localStorage.setItem(getStorageKey('ious'), JSON.stringify(ious));
+                displayIOUs();
+            }
+
+            let message = `✓ Imported: ${successCount} IOUs`;
+            if (errorCount > 0) {
+                message += `\n⚠️ Errors: ${errorCount} lines`;
+            }
+            alert(message);
+
+            if (successCount > 0) {
+                document.getElementById('bulkData').value = '';
+            }
+        });
+
+        // Initialize on load
+        initializeForm();
+        displayIOUs();
+        document.getElementById('iouSearch').addEventListener('input', function() {
+            displayIOUs(this.value.trim());
+        });
+    </script>
+</body>
+</html>

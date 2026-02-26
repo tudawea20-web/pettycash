@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Petty Cash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">Tudawe Trading Co(Pvt)Ltd</h1>
+                    <p class="text-sm text-blue-200">Settings & Customization</p>
+                </div>
+                <a href="index.html" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded font-semibold">← Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Number Format Customization -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">📋 Document Number Format</h2>
+            <p class="text-gray-600 mb-6">Customize the prefixes for auto-generated document numbers</p>
+            
+            <form id="settingsForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- IOU Prefix -->
+                    <div class="bg-orange-50 p-6 rounded-lg border-2 border-orange-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">IOU Number Prefix</label>
+                        <div class="flex gap-2 items-center">
+                            <input type="text" id="iouPrefix" maxlength="10" class="flex-1 px-4 py-2 border border-orange-300 rounded-lg" placeholder="IOU">
+                            <span class="text-gray-600">-00001</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-2">Example: <span id="iouExample" class="font-semibold">IOU-00001</span></p>
+                    </div>
+
+                    <!-- Invoice Prefix -->
+                    <div class="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Invoice Number Prefix</label>
+                        <div class="flex gap-2 items-center">
+                            <input type="text" id="invoicePrefix" maxlength="10" class="flex-1 px-4 py-2 border border-blue-300 rounded-lg" placeholder="INV">
+                            <span class="text-gray-600">-00001</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-2">Example: <span id="invoiceExample" class="font-semibold">INV-00001</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-100 border-l-4 border-blue-600 p-4 rounded">
+                    <p class="text-blue-900"><strong>💡 Tip:</strong> Use meaningful prefixes like "IOU", "LOAN", "INV", "BILL", etc. Numbers will auto-increment (00001, 00002, etc.)</p>
+                </div>
+
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition text-lg">✓ Save Settings</button>
+            </form>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-red-200">
+            <h2 class="text-2xl font-bold mb-6 text-red-600">⚠️ Danger Zone</h2>
+            
+            <div class="space-y-4">
+                <div class="p-4 bg-red-50 rounded-lg">
+                    <h3 class="font-bold text-red-800 mb-2">Reset All Settings</h3>
+                    <p class="text-gray-700 mb-3">Reset all customization to default values (IOU, INV)</p>
+                    <button onclick="resetSettings()" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded">↻ Reset to Default</button>
+                </div>
+
+                <div class="p-4 bg-red-50 rounded-lg">
+                    <h3 class="font-bold text-red-800 mb-2">Clear All Data</h3>
+                    <p class="text-gray-700 mb-3">⚠️ This will permanently delete ALL data (IOUs, Invoices, Expenses, Cash Counts)</p>
+                    <button onclick="clearAllData()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded">🗑️ Delete Everything</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auth check
+        function checkAuth() {
+            const user = localStorage.getItem('_pettycash_currentUser');
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        function getStorageKey(key) {
+            const user = localStorage.getItem('_pettycash_currentUser');
+            return user ? `${user}_${key}` : key;
+        }
+
+        checkAuth();
+
+        function loadSettings() {
+            const iouPrefix = localStorage.getItem(getStorageKey('iouPrefix')) || 'IOU';
+            const invoicePrefix = localStorage.getItem(getStorageKey('invoicePrefix')) || 'INV';
+            
+            document.getElementById('iouPrefix').value = iouPrefix;
+            document.getElementById('invoicePrefix').value = invoicePrefix;
+            
+            updateExamples();
+        }
+
+        function updateExamples() {
+            const iouPrefix = document.getElementById('iouPrefix').value || 'IOU';
+            const invoicePrefix = document.getElementById('invoicePrefix').value || 'INV';
+            
+            document.getElementById('iouExample').textContent = iouPrefix + '-00001';
+            document.getElementById('invoiceExample').textContent = invoicePrefix + '-00001';
+        }
+
+        function resetSettings() {
+            if (confirm('Reset prefixes to default values (IOU, INV)?')) {
+                localStorage.removeItem(getStorageKey('iouPrefix'));
+                localStorage.removeItem(getStorageKey('invoicePrefix'));
+                loadSettings();
+                alert('Settings reset to default!');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Are you REALLY sure? This will delete ALL data permanently! Type "CONFIRM" to proceed.')) {
+                const confirmation = prompt('Type "CONFIRM" to delete all data:');
+                if (confirmation === 'CONFIRM') {
+                    localStorage.clear();
+                    alert('All data has been deleted!');
+                    location.reload();
+                } else {
+                    alert('Deletion cancelled.');
+                }
+            }
+        }
+
+        document.getElementById('iouPrefix').addEventListener('input', updateExamples);
+        document.getElementById('invoicePrefix').addEventListener('input', updateExamples);
+
+        document.getElementById('settingsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const iouPrefix = document.getElementById('iouPrefix').value.trim() || 'IOU';
+            const invoicePrefix = document.getElementById('invoicePrefix').value.trim() || 'INV';
+
+            // Validate - prefixes should be alphanumeric
+            if (!/^[A-Za-z0-9]+$/.test(iouPrefix)) {
+                alert('IOU prefix must contain only letters and numbers!');
+                return;
+            }
+            if (!/^[A-Za-z0-9]+$/.test(invoicePrefix)) {
+                alert('Invoice prefix must contain only letters and numbers!');
+                return;
+            }
+
+            localStorage.setItem(getStorageKey('iouPrefix'), iouPrefix);
+            localStorage.setItem(getStorageKey('invoicePrefix'), invoicePrefix);
+
+            alert('Settings saved successfully! New documents will use the updated prefixes.');
+            updateExamples();
+        });
+
+        // Load settings on page load
+        loadSettings();
+    </script>
+</body>
+</html>

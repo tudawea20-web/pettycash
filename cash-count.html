@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Cash Count - Petty Cash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">Tudawe Trading Co(Pvt)Ltd</h1>
+                    <p class="text-sm text-blue-200">Daily Cash Count Sheet</p>
+                </div>
+                <a href="index.html" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded font-semibold">← Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Cash Count Form -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Record Daily Cash Count</h2>
+            
+            <form id="cashCountForm" class="space-y-6">
+                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600 mb-4">
+                    <p class="text-gray-700"><span class="font-bold">Float Amount (Opening):</span> Rs <span class="text-xl font-bold text-blue-600">250,000.00</span></p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+                        <input type="date" id="countDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Counter Name *</label>
+                        <input type="text" id="counterName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Who counted the cash?">
+                    </div>
+                </div>
+
+                <div class="border-t pt-6">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800">💵 Currency Count</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">5000 Notes (Qty)</label>
+                            <input type="number" id="note5000" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">1000 Notes (Qty)</label>
+                            <input type="number" id="note1000" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">500 Notes (Qty)</label>
+                            <input type="number" id="note500" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">100 Notes (Qty)</label>
+                            <input type="number" id="note100" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">50 Notes (Qty)</label>
+                            <input type="number" id="note50" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">20 Notes (Qty)</label>
+                            <input type="number" id="note20" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">10 Notes (Qty)</label>
+                            <input type="number" id="note10" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-6">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800">📊 Summary</h3>
+                    <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
+                        <p class="text-gray-700 mb-2"><span class="font-bold">Total Cash Counted:</span> <span id="totalCashCounted" class="text-2xl font-bold text-green-600">Rs 0.00</span></p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Notes/Remarks</label>
+                    <textarea id="remarks" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Any discrepancies or notes..."></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition">✓ Save Cash Count</button>
+            </form>
+        </div>
+
+        <!-- Paid Invoices Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">💰 Paid Invoices (Cash Received)</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-green-100 border-b-2 border-green-600">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Invoice #</th>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Customer</th>
+                            <th class="px-4 py-3 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paidInvoicesList">
+                        <tr>
+                            <td colspan="4" class="px-4 py-8 text-center text-gray-500">No paid invoices yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 p-4 bg-green-50 border-l-4 border-green-600 rounded">
+                <p class="text-gray-700"><span class="font-bold">Total Cash from Paid Invoices:</span> <span id="totalPaidInvoices" class="text-lg font-bold text-green-600">Rs 0.00</span></p>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="invoice.html" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">→ View All Invoices</a>
+            </div>
+        </div>
+
+        <!-- Bulk Import Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8 border-2 border-orange-300">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">📥 Bulk Import Denomination</h2>
+            <p class="text-gray-600 mb-4">Quick import currency count. Format: Denomination,Count (e.g., 5000,84)</p>
+            
+            <form id="bulkImportForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+                        <input type="date" id="bulkDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Counter Name *</label>
+                        <input type="text" id="bulkCounter" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Who counted?">
+                    </div>
+                </div>
+
+                <textarea id="denominationData" rows="8" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm" placeholder="5000,84&#10;1000,35&#10;500,37&#10;100,30&#10;50,71&#10;20,30&#10;10,22&#10;5,6&#10;2,2&#10;1,2&#10;0.5,0&#10;0.25,104"></textarea>
+                
+                <div class="bg-orange-50 p-3 rounded text-sm text-gray-700">
+                    <p><strong>Format:</strong> Denomination,Count</p>
+                    <p><strong>Example:</strong></p>
+                    <p>5000,84</p>
+                    <p>1000,35</p>
+                    <p>500,37</p>
+                    <p class="mt-2 text-xs">Total will be auto-calculated</p>
+                </div>
+
+                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition">↑ Import & Calculate Total</button>
+            </form>
+        </div>
+
+        <!-- Cash Count History -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Cash Count History</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-red-100 border-b-2 border-red-600">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Date</th>
+                            <th class="px-4 py-3 text-left">Counter</th>
+                            <th class="px-4 py-3 text-right">Total Counted</th>
+                            <th class="px-4 py-3 text-right">Variance</th>
+                            <th class="px-4 py-3 text-left">Remarks</th>
+                            <th class="px-4 py-3 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyList">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">No cash count records yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="p-4 bg-blue-50 border-l-4 border-blue-600 rounded">
+                    <p class="text-gray-700"><span class="font-bold">Float Amount:</span></p>
+                    <p class="text-2xl font-bold text-blue-600">Rs 250,000.00</p>
+                </div>
+                <div class="p-4 bg-green-50 border-l-4 border-green-600 rounded">
+                    <p class="text-gray-700"><span class="font-bold">Latest Count:</span></p>
+                    <p id="latestCount" class="text-2xl font-bold text-green-600">Rs 0.00</p>
+                </div>
+                <div class="p-4 bg-orange-50 border-l-4 border-orange-600 rounded">
+                    <p class="text-gray-700"><span class="font-bold">Expected Balance:</span></p>
+                    <p id="expectedBalance" class="text-2xl font-bold text-orange-600">Rs 0.00</p>
+                </div>
+                <div class="p-4 bg-purple-50 border-l-4 border-purple-600 rounded">
+                    <p class="text-gray-700"><span class="font-bold">Variance:</span></p>
+                    <p id="variance" class="text-2xl font-bold text-purple-600">Rs 0.00</p>
+                </div>
+            </div>
+
+            <!-- Reconciliation Alert -->
+            <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-600 rounded hidden" id="reconcileAlert">
+                <p class="text-yellow-900"><strong>⚠️ Reconciliation Issue!</strong></p>
+                <p id="reconcileMessage" class="text-yellow-900 mt-2"></p>
+            </div>
+
+            <div class="mt-4 p-4 bg-green-50 border-l-4 border-green-600 rounded hidden" id="reconcileSuccess">
+                <p class="text-green-900"><strong>✅ Cash Count Matches Balance!</strong></p>
+                <p id="reconcileSuccessMessage" class="text-green-900 mt-2"></p>
+            </div>
+        </div>
+
+        <!-- Quick Print -->
+        <div class="mt-8 text-center">
+            <button onclick="printCashCount()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg">🖨️ Print Cash Count Report</button>
+        </div>
+    </div>
+
+    <script>
+        const DENOMINATION = {
+            5000: 5000,
+            1000: 1000,
+            500: 500,
+            100: 100,
+            50: 50,
+            20: 20,
+            10: 10
+        };
+
+        function formatCurrency(amount) {
+            return 'Rs ' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            Object.keys(DENOMINATION).forEach(denom => {
+                const qty = parseInt(document.getElementById('note' + denom).value || 0);
+                total += parseFloat(denom) * qty;
+            });
+            document.getElementById('totalCashCounted').textContent = formatCurrency(total);
+            return total;
+        }
+
+        function initializeForm() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('countDate').value = today;
+            
+            // Add input listeners for auto-calculation
+            Object.keys(DENOMINATION).forEach(denom => {
+                document.getElementById('note' + denom).addEventListener('change', calculateTotal);
+            });
+        }
+
+        function displayHistory(searchTerm = '') {
+            let records = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                records = records.filter(r => r.counterName.toLowerCase().includes(term));
+            }
+            const tbody = document.getElementById('historyList');
+
+            if (records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No cash count records yet</td></tr>';
+                updateStats([]);
+                return;
+            }
+
+            tbody.innerHTML = records.reverse().map((record, index) => {
+                const variance = record.totalCounted - 250000;
+                const varianceClass = variance >= 0 ? 'text-green-600' : 'text-red-600';
+                const sign = variance >= 0 ? '+' : '';
+                return `
+                    <tr class="border-b hover:bg-red-50">
+                        <td class="px-4 py-3">${record.date}</td>
+                        <td class="px-4 py-3 font-semibold">${record.counterName}</td>
+                        <td class="px-4 py-3 text-right font-bold">${formatCurrency(record.totalCounted)}</td>
+                        <td class="px-4 py-3 text-right font-bold ${varianceClass}">${sign}${formatCurrency(Math.abs(variance))}</td>
+                        <td class="px-4 py-3 text-gray-600">${record.remarks || '-'}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="deleteRecord(${records.length - 1 - index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateStats(records);
+        }
+
+        function updateStats(records) {
+            const allRecords = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+            
+            // Get latest count
+            if (allRecords.length === 0) {
+                document.getElementById('latestCount').textContent = 'Rs 0.00';
+                document.getElementById('expectedBalance').textContent = 'Rs 0.00';
+                document.getElementById('variance').textContent = 'Rs 0.00';
+                document.getElementById('reconcileAlert').classList.add('hidden');
+                document.getElementById('reconcileSuccess').classList.add('hidden');
+                return;
+            }
+
+            const latest = allRecords[allRecords.length - 1];
+            const latestCount = latest.totalCounted;
+            document.getElementById('latestCount').textContent = formatCurrency(latestCount);
+
+            // Calculate expected balance
+            const FLOAT_AMOUNT = 250000;
+            const ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+            const expenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+
+            const activeIOUs = ious.filter(iou => !iou.settled);
+            const totalIOUs = activeIOUs.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0);
+            const totalExpenses = expenses.filter(exp => !exp.reimbursed).reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+            const pendingInvoices = invoices.filter(inv => inv.status === 'Pending' || inv.status === 'Pending Deposit');
+            const totalPendingInvoices = pendingInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+            const expectedBalance = FLOAT_AMOUNT - totalIOUs - totalExpenses + totalPendingInvoices;
+
+            document.getElementById('expectedBalance').textContent = formatCurrency(expectedBalance);
+
+            // Calculate variance
+            const variance = latestCount - expectedBalance;
+            const varianceClass = variance === 0 ? 'text-blue-600' : (variance > 0 ? 'text-green-600' : 'text-red-600');
+            const sign = variance > 0 ? '+' : '';
+            
+            document.getElementById('variance').innerHTML = `<span class="${varianceClass}">${sign}${formatCurrency(Math.abs(variance))}</span>`;
+
+            // Show reconciliation message
+            const reconcileAlert = document.getElementById('reconcileAlert');
+            const reconcileSuccess = document.getElementById('reconcileSuccess');
+            const reconcileMessage = document.getElementById('reconcileMessage');
+            const reconcileSuccessMessage = document.getElementById('reconcileSuccessMessage');
+
+            if (Math.abs(variance) < 0.01) { // Considering floating point errors
+                reconcileAlert.classList.add('hidden');
+                reconcileSuccess.classList.remove('hidden');
+                reconcileSuccessMessage.innerHTML = `Cash counted (${formatCurrency(latestCount)}) matches expected balance (${formatCurrency(expectedBalance)})!`;
+            } else if (variance > 0) {
+                reconcileAlert.classList.remove('hidden');
+                reconcileSuccess.classList.add('hidden');
+                reconcileMessage.innerHTML = `<strong>Cash Surplus:</strong> ${formatCurrency(variance)} more than expected<br>
+                    <strong>Counted:</strong> ${formatCurrency(latestCount)}<br>
+                    <strong>Expected:</strong> ${formatCurrency(expectedBalance)}`;
+            } else {
+                reconcileAlert.classList.remove('hidden');
+                reconcileSuccess.classList.add('hidden');
+                reconcileMessage.innerHTML = `<strong>Cash Shortage:</strong> ${formatCurrency(Math.abs(variance))} less than expected<br>
+                    <strong>Counted:</strong> ${formatCurrency(latestCount)}<br>
+                    <strong>Expected:</strong> ${formatCurrency(expectedBalance)}`;
+            }
+        }
+
+        function deleteRecord(index) {
+            if (confirm('Are you sure you want to delete this record?')) {
+                let records = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+                records.splice(index, 1);
+                localStorage.setItem(getStorageKey('cashCounts'), JSON.stringify(records));
+                displayHistory();
+                displayPaidInvoices();
+            }
+        }
+
+        function displayPaidInvoices() {
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            const paidInvoices = invoices.filter(inv => inv.status === 'Deposited');
+            const tbody = document.getElementById('paidInvoicesList');
+
+            if (paidInvoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">No paid invoices yet</td></tr>';
+                document.getElementById('totalPaidInvoices').textContent = 'Rs 0.00';
+                return;
+            }
+
+            let total = 0;
+            tbody.innerHTML = paidInvoices.map(inv => {
+                total += parseFloat(inv.amount || 0);
+                return `
+                    <tr class="border-b hover:bg-green-50">
+                        <td class="px-4 py-3 font-semibold text-green-600">${inv.number}</td>
+                        <td class="px-4 py-3">${inv.date}</td>
+                        <td class="px-4 py-3 font-semibold">${inv.customerName}</td>
+                        <td class="px-4 py-3 text-right font-bold">${formatCurrency(inv.amount)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('totalPaidInvoices').textContent = formatCurrency(total);
+            updateStats([]);
+        }
+
+        function printCashCount() {
+            const records = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+            if (records.length === 0) {
+                alert('No cash count records to print!');
+                return;
+            }
+
+            let html = '<h2>Daily Cash Count Report - Tudawe Trading</h2>';
+            html += '<p>Generated on: ' + new Date().toLocaleString() + '</p>';
+            html += '<table border="1" cellpadding="5">';
+            html += '<tr><th>Date</th><th>Counter</th><th>Total Counted</th><th>Variance from Float</th><th>Remarks</th></tr>';
+
+            records.reverse().forEach(record => {
+                const variance = record.totalCounted - 250000;
+                const sign = variance >= 0 ? '+' : '';
+                html += `<tr><td>${record.date}</td><td>${record.counterName}</td><td>${formatCurrency(record.totalCounted)}</td><td>${sign}${formatCurrency(Math.abs(variance))}</td><td>${record.remarks || '-'}</td></tr>`;
+            });
+
+            html += '</table>';
+
+            const w = window.open('', '', 'height=600,width=1000');
+            w.document.write(html);
+            w.document.close();
+            w.print();
+        }
+
+        document.getElementById('cashCountForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const total = calculateTotal();
+
+            const record = {
+                date: document.getElementById('countDate').value,
+                counterName: document.getElementById('counterName').value,
+                totalCounted: total,
+                note5000: parseInt(document.getElementById('note5000').value || 0),
+                note1000: parseInt(document.getElementById('note1000').value || 0),
+                note500: parseInt(document.getElementById('note500').value || 0),
+                note100: parseInt(document.getElementById('note100').value || 0),
+                note50: parseInt(document.getElementById('note50').value || 0),
+                note20: parseInt(document.getElementById('note20').value || 0),
+                note10: parseInt(document.getElementById('note10').value || 0),
+                remarks: document.getElementById('remarks').value
+            };
+
+            let records = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+            records.push(record);
+            localStorage.setItem(getStorageKey('cashCounts'), JSON.stringify(records));
+
+            // Reset form
+            this.reset();
+            initializeForm();
+            calculateTotal();
+            displayHistory();
+            displayPaidInvoices();
+            alert('Cash count saved successfully!');
+        });
+
+        // Initialize on load
+        initializeForm();
+        displayHistory();
+        document.getElementById('cashCountSearch').addEventListener('input', function() {
+            displayHistory(this.value.trim());
+        });
+        displayPaidInvoices();
+        
+        // Set bulk import date to today
+        document.getElementById('bulkDate').valueAsDate = new Date();
+        
+        // Bulk Import Handler
+        document.getElementById('bulkImportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const date = document.getElementById('bulkDate').value;
+            const counterName = document.getElementById('bulkCounter').value;
+            const denominationData = document.getElementById('denominationData').value.trim();
+
+            if (!date || !counterName || !denominationData) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const lines = denominationData.split('\n').filter(line => line.trim());
+            let totalCash = 0;
+            let successCount = 0;
+            let errorCount = 0;
+            const denominationCounts = {
+                note5000: 0,
+                note1000: 0,
+                note500: 0,
+                note100: 0,
+                note50: 0,
+                note20: 0,
+                note10: 0,
+                note5: 0,
+                note2: 0,
+                note1: 0,
+                note0_5: 0,
+                note0_25: 0
+            };
+
+            const denominationMap = {
+                '5000': { key: 'note5000', value: 5000 },
+                '1000': { key: 'note1000', value: 1000 },
+                '500': { key: 'note500', value: 500 },
+                '100': { key: 'note100', value: 100 },
+                '50': { key: 'note50', value: 50 },
+                '20': { key: 'note20', value: 20 },
+                '10': { key: 'note10', value: 10 },
+                '5': { key: 'note5', value: 5 },
+                '2': { key: 'note2', value: 2 },
+                '1': { key: 'note1', value: 1 },
+                '0.5': { key: 'note0_5', value: 0.5 },
+                '0.25': { key: 'note0_25', value: 0.25 }
+            };
+
+            lines.forEach((line, index) => {
+                try {
+                    const parts = line.split(',').map(p => p.trim());
+                    
+                    if (parts.length !== 2) {
+                        console.warn(`Line ${index + 1}: Invalid format`);
+                        errorCount++;
+                        return;
+                    }
+
+                    const [denomination, countStr] = parts;
+                    const count = parseInt(countStr);
+
+                    if (!denominationMap[denomination] || isNaN(count) || count < 0) {
+                        errorCount++;
+                        return;
+                    }
+
+                    const { key, value } = denominationMap[denomination];
+                    denominationCounts[key] = count;
+                    totalCash += value * count;
+                    successCount++;
+                } catch (error) {
+                    console.error(`Line ${index + 1} error:`, error);
+                    errorCount++;
+                }
+            });
+
+            if (successCount > 0) {
+                const record = {
+                    date: date,
+                    counterName: counterName,
+                    totalCounted: totalCash,
+                    ...denominationCounts,
+                    remarks: ''
+                };
+
+                let records = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+                records.push(record);
+                localStorage.setItem(getStorageKey('cashCounts'), JSON.stringify(records));
+                
+                displayHistory();
+                displayPaidInvoices();
+            }
+
+            let message = `✓ Imported: ${successCount} denominations\nTotal Cash: Rs ${totalCash.toFixed(2)}`;
+            if (errorCount > 0) {
+                message += `\n⚠️ Errors: ${errorCount} lines`;
+            }
+            alert(message);
+
+            if (successCount > 0) {
+                document.getElementById('denominationData').value = '';
+            }
+        });
+        
+        // Refresh paid invoices every 5 seconds
+        setInterval(displayPaidInvoices, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petty Cash Management - Tudawe Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .dashboard-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">Tudawe Trading Co(Pvt)Ltd</h1>
+                    <p class="text-sm text-blue-200">Petty Cash Management System</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="currentUser" class="text-blue-100"></span>
+                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold text-sm">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Dashboard Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Daily Petty Cash Dashboard</h2>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mt-6">
+                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
+                    <p class="text-gray-600 text-sm font-semibold">Float Amount</p>
+                    <p class="text-2xl font-bold text-blue-600">Rs 250,000.00</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
+                    <p class="text-gray-600 text-sm font-semibold">Total Expenses</p>
+                    <p class="text-2xl font-bold text-green-600" id="totalExpenses">Rs 0.00</p>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-600">
+                    <p class="text-gray-600 text-sm font-semibold">Total IOUs</p>
+                    <p class="text-2xl font-bold text-orange-600" id="totalIOUs">Rs 0.00</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-600">
+                    <p class="text-gray-600 text-sm font-semibold">Balance</p>
+                    <p class="text-2xl font-bold text-purple-600" id="balance">Rs 250,000.00</p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-600">
+                    <p class="text-gray-600 text-sm font-semibold">⏳ Pending Deposit</p>
+                    <p class="text-2xl font-bold text-yellow-600" id="pendingDepositAmount">Rs 0.00</p>
+                </div>
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-lg border-l-4 border-indigo-600">
+                    <p class="text-gray-600 text-sm font-semibold">💹 Variance</p>
+                    <p class="text-lg font-bold text-indigo-600" id="topVariance">Rs 0.00</p>
+                    <p id="topVarianceStatus" class="text-xs font-semibold text-indigo-600 mt-1">No data</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+            <a href="iou.html" class="dashboard-card bg-white rounded-lg shadow-lg p-6 border-t-4 border-orange-500 text-center hover:shadow-xl">
+                <div class="text-4xl mb-3">📝</div>
+                <h3 class="font-bold text-lg mb-2 text-gray-800">IOU Management</h3>
+                <p class="text-gray-600 text-sm">Add & manage IOUs</p>
+            </a>
+
+            <a href="expenses.html" class="dashboard-card bg-white rounded-lg shadow-lg p-6 border-t-4 border-green-500 text-center hover:shadow-xl">
+                <div class="text-4xl mb-3">💰</div>
+                <h3 class="font-bold text-lg mb-2 text-gray-800">Expenses</h3>
+                <p class="text-gray-600 text-sm">Daily expense sheet</p>
+            </a>
+
+            <a href="invoice.html" class="dashboard-card bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-500 text-center hover:shadow-xl">
+                <div class="text-4xl mb-3">🧾</div>
+                <h3 class="font-bold text-lg mb-2 text-gray-800">Invoice</h3>
+                <p class="text-gray-600 text-sm">Cash invoice list</p>
+            </a>
+
+            <a href="cash-count.html" class="dashboard-card bg-white rounded-lg shadow-lg p-6 border-t-4 border-red-500 text-center hover:shadow-xl">
+                <div class="text-4xl mb-3">💵</div>
+                <h3 class="font-bold text-lg mb-2 text-gray-800">Cash Count</h3>
+                <p class="text-gray-600 text-sm">Daily cash count sheet</p>
+            </a>
+
+            <a href="settings.html" class="dashboard-card bg-white rounded-lg shadow-lg p-6 border-t-4 border-purple-500 text-center hover:shadow-xl">
+                <div class="text-4xl mb-3">⚙️</div>
+                <h3 class="font-bold text-lg mb-2 text-gray-800">Settings</h3>
+                <p class="text-gray-600 text-sm">Customize prefixes</p>
+            </a>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="font-bold text-lg mb-4 text-gray-800">Recent IOUs</h3>
+                <div id="recentIOUs" class="space-y-2">
+                    <p class="text-gray-500 text-sm">No IOUs yet</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="font-bold text-lg mb-4 text-gray-800">Recent Expenses</h3>
+                <div id="recentExpenses" class="space-y-2">
+                    <p class="text-gray-500 text-sm">No expenses yet</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="font-bold text-lg mb-4 text-gray-800">Recent Invoices</h3>
+                <div id="recentInvoices" class="space-y-2">
+                    <p class="text-gray-500 text-sm">No invoices yet</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="font-bold text-lg mb-4 text-gray-800">Latest Cash Count</h3>
+                <div id="latestCashCount" class="space-y-2">
+                    <p class="text-gray-500 text-sm">No cash count yet</p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg shadow-lg p-6 border-l-4 border-cyan-600">
+                <h3 class="font-bold text-lg mb-4 text-gray-800">📊 Report Management</h3>
+                <div class="space-y-2">
+                    <button onclick="generateIOUReport()" class="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        📄 IOU Report
+                    </button>
+                    <button onclick="exportIOUCSV()" class="w-full bg-orange-700 hover:bg-orange-800 text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        📥 IOU CSV
+                    </button>
+                    <button onclick="generateExpenseReport()" class="w-full bg-green-500 hover:bg-green-600 text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        📄 Expense Report
+                    </button>
+                    <button onclick="exportExpenseCSV()" class="w-full bg-green-700 hover:bg-green-800 text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        📥 Expense CSV
+                    </button>
+                    <button onclick="generateInvoiceReport()" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        📄 Invoice Report
+                    </button>
+                    <button onclick="exportInvoiceCSV()" class="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        📥 Invoice CSV
+                    </button>
+                    <button onclick="generateCashCountReport()" class="w-full bg-red-500 hover:bg-red-600 text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        📄 Cash Count Report
+                    </button>
+                    <button onclick="exportCashCountCSV()" class="w-full bg-red-700 hover:bg-red-800 text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        📥 Cash Count CSV
+                    </button>
+                    <button onclick="exportAllBackup()" class="w-full bg-gray-700 hover:bg-black text-white text-xs font-semibold py-2 px-3 rounded transition">
+                        💾 Export JSON Backup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auth & User Management
+        function checkAuth() {
+            const currentUser = localStorage.getItem('_pettycash_currentUser');
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return currentUser;
+        }
+
+        function getCurrentUser() {
+            return localStorage.getItem('_pettycash_currentUser') || '';
+        }
+
+        function getStorageKey(key) {
+            const user = getCurrentUser();
+            return user ? `${user}_${key}` : key;
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('_pettycash_currentUser');
+                window.location.href = 'login.html';
+            }
+        }
+
+        const FLOAT_AMOUNT = 250000;
+
+        function formatCurrency(amount) {
+            return 'Rs ' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function updateDashboard() {
+            checkAuth();
+            const ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+            const expenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            const cashCounts = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+
+            // Calculate totals
+            const activeIOUs = ious.filter(iou => !iou.settled);
+            const totalIOUs = activeIOUs.reduce((sum, iou) => sum + parseFloat(iou.amount || 0), 0);
+            const totalExpenses = expenses.filter(exp => !exp.reimbursed).reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+            const pendingInvoices = invoices.filter(inv => inv.status === 'Pending' || inv.status === 'Pending Deposit');
+            const totalPendingInvoices = pendingInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+            const pendingDepositInvoices = invoices.filter(inv => inv.status === 'Pending Deposit');
+            const totalPendingDeposit = pendingDepositInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+            const balance = FLOAT_AMOUNT - totalIOUs - totalExpenses + totalPendingInvoices;
+
+            document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('totalIOUs').textContent = formatCurrency(totalIOUs);
+            document.getElementById('balance').textContent = formatCurrency(balance);
+            document.getElementById('pendingDepositAmount').textContent = formatCurrency(totalPendingDeposit);
+
+            // Top Variance Display
+            const expectedBalance = FLOAT_AMOUNT - totalIOUs - totalExpenses + totalPendingInvoices;
+            if (cashCounts.length > 0) {
+                const latestCounted = cashCounts[cashCounts.length - 1].totalCounted;
+                const variance = latestCounted - expectedBalance;
+                
+                let statusText, statusClass;
+                if (Math.abs(variance) < 0.01) {
+                    statusText = '✅ Match!';
+                    statusClass = 'text-green-600';
+                } else if (variance > 0) {
+                    statusText = '⚠️ +Surplus';
+                    statusClass = 'text-yellow-600';
+                } else {
+                    statusText = '⚠️ -Shortage';
+                    statusClass = 'text-red-600';
+                }
+                
+                document.getElementById('topVariance').innerHTML = `<span class="${statusClass}">${variance >= 0 ? '+' : ''}${formatCurrency(Math.abs(variance))}</span>`;
+                document.getElementById('topVarianceStatus').className = `text-xs font-semibold ${statusClass} mt-1`;
+                document.getElementById('topVarianceStatus').textContent = statusText;
+            } else {
+                document.getElementById('topVariance').textContent = 'Rs 0.00';
+                document.getElementById('topVarianceStatus').textContent = 'No data';
+                document.getElementById('topVarianceStatus').className = 'text-xs font-semibold text-gray-600 mt-1';
+            }
+
+            // Recent IOUs
+            const recentIOUsDiv = document.getElementById('recentIOUs');
+            if (activeIOUs.length > 0) {
+                recentIOUsDiv.innerHTML = activeIOUs.slice(-3).reverse().map(iou => 
+                    `<div class="text-sm p-2 bg-orange-50 rounded">
+                        <span class="font-semibold">${iou.number}</span> - ${formatCurrency(iou.amount)}
+                    </div>`
+                ).join('');
+            } else {
+                recentIOUsDiv.innerHTML = '<p class="text-gray-500 text-sm">No IOUs yet</p>';
+            }
+
+            // Recent Expenses
+            const recentExpensesDiv = document.getElementById('recentExpenses');
+            if (expenses.length > 0) {
+                recentExpensesDiv.innerHTML = expenses.slice(-3).reverse().map(exp => 
+                    `<div class="text-sm p-2 bg-green-50 rounded">
+                        <span class="font-semibold">${exp.description}</span> - ${formatCurrency(exp.amount)}
+                    </div>`
+                ).join('');
+            } else {
+                recentExpensesDiv.innerHTML = '<p class="text-gray-500 text-sm">No expenses yet</p>';
+            }
+
+            // Recent Invoices
+            const recentInvoicesDiv = document.getElementById('recentInvoices');
+            if (invoices.length > 0) {
+                recentInvoicesDiv.innerHTML = invoices.slice(-3).reverse().map(inv => 
+                    `<div class="text-sm p-2 bg-blue-50 rounded">
+                        <span class="font-semibold">${inv.number}</span> - ${formatCurrency(inv.amount)}
+                    </div>`
+                ).join('');
+            } else {
+                recentInvoicesDiv.innerHTML = '<p class="text-gray-500 text-sm">No invoices yet</p>';
+            }
+
+            // Latest Cash Count
+            const latestCashCountDiv = document.getElementById('latestCashCount');
+            if (cashCounts.length > 0) {
+                const latest = cashCounts[cashCounts.length - 1];
+                const variance = latest.totalCounted - 250000;
+                const varianceClass = variance >= 0 ? 'text-green-600' : 'text-red-600';
+                const sign = variance >= 0 ? '+' : '';
+                latestCashCountDiv.innerHTML = `
+                    <div class="text-sm p-2 bg-red-50 rounded">
+                        <span class="font-semibold">${latest.date}</span> - Counted by ${latest.counterName}
+                    </div>
+                    <div class="text-sm p-2 bg-red-50 rounded">
+                        <span class="font-semibold">Amount:</span> ${formatCurrency(latest.totalCounted)}
+                    </div>
+                    <div class="text-sm p-2 bg-red-50 rounded">
+                        <span class="font-semibold ${varianceClass}">Variance:</span> <span class="${varianceClass}">${sign}${formatCurrency(Math.abs(variance))}</span>
+                    </div>
+                `;
+            } else {
+                latestCashCountDiv.innerHTML = '<p class="text-gray-500 text-sm">No cash count yet</p>';
+            }
+        }
+
+        // resetAllData removed — destructive action was intentionally removed from UI
+
+        function generateIOUReport() {
+            const ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+            if (ious.length === 0) {
+                alert('No IOU records to generate report!');
+                return;
+            }
+
+            let html = '<html><head><title>IOU Report</title><style>body{font-family:Arial;margin:20px;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #999;padding:10px;text-align:left;}th{background:#4CAF50;color:white;}h2{color:#333;}</style></head><body>';
+            html += '<h2>IOU Report - Tudawe Trading Co(Pvt)Ltd</h2>';
+            html += '<p>Generated on: ' + new Date().toLocaleString() + '</p>';
+            html += '<table><tr><th>Date</th><th>IOU Number</th><th>Person Name</th><th>Amount</th></tr>';
+
+            let total = 0;
+            ious.forEach(iou => {
+                const amount = parseFloat(iou.amount || 0);
+                total += amount;
+                html += `<tr><td>${iou.date}</td><td>${iou.number}</td><td>${iou.personName}</td><td>Rs ${amount.toFixed(2)}</td></tr>`;
+            });
+
+            html += '</table>';
+            html += `<p style="margin-top:20px;font-weight:bold;font-size:16px;">Total IOUs: Rs ${total.toFixed(2)}</p>`;
+            html += '</body></html>';
+
+            const w = window.open('', 'IOUReport', 'height=800,width=1000');
+            w.document.write(html);
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+        }
+
+        function generateExpenseReport() {
+            const expenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
+            if (expenses.length === 0) {
+                alert('No expense records to generate report!');
+                return;
+            }
+
+            let html = '<html><head><title>Expense Report</title><style>body{font-family:Arial;margin:20px;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #999;padding:10px;text-align:left;}th{background:#2196F3;color:white;}h2{color:#333;}</style></head><body>';
+            html += '<h2>Expense Report - Tudawe Trading Co(Pvt)Ltd</h2>';
+            html += '<p>Generated on: ' + new Date().toLocaleString() + '</p>';
+            html += '<table><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr>';
+
+            let total = 0;
+            expenses.forEach(exp => {
+                const amount = parseFloat(exp.amount || 0);
+                total += amount;
+                html += `<tr><td>${exp.date}</td><td>${exp.description}</td><td>${exp.category}</td><td>Rs ${amount.toFixed(2)}</td></tr>`;
+            });
+
+            html += '</table>';
+            html += `<p style="margin-top:20px;font-weight:bold;font-size:16px;">Total Expenses: Rs ${total.toFixed(2)}</p>`;
+            html += '</body></html>';
+
+            const w = window.open('', 'ExpenseReport', 'height=800,width=1000');
+            w.document.write(html);
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+        }
+
+        function generateInvoiceReport() {
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            if (invoices.length === 0) {
+                alert('No invoice records to generate report!');
+                return;
+            }
+
+            let html = '<html><head><title>Invoice Report</title><style>body{font-family:Arial;margin:20px;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #999;padding:10px;text-align:left;}th{background:#FF9800;color:white;}h2{color:#333;}</style></head><body>';
+            html += '<h2>Invoice Report - Tudawe Trading Co(Pvt)Ltd</h2>';
+            html += '<p>Generated on: ' + new Date().toLocaleString() + '</p>';
+            html += '<table><tr><th>Date</th><th>Invoice Number</th><th>Customer</th><th>Amount</th><th>Status</th><th>Method</th></tr>';
+
+            let total = 0;
+            invoices.forEach(inv => {
+                const amount = parseFloat(inv.amount || 0);
+                total += amount;
+                html += `<tr><td>${inv.date}</td><td>${inv.number}</td><td>${inv.customerName}</td><td>Rs ${amount.toFixed(2)}</td><td>${inv.status}</td><td>${inv.paymentMethod}</td></tr>`;
+            });
+
+            html += '</table>';
+            html += `<p style="margin-top:20px;font-weight:bold;font-size:16px;">Total Invoices: Rs ${total.toFixed(2)}</p>`;
+            html += '</body></html>';
+
+            const w = window.open('', 'InvoiceReport', 'height=800,width=1000');
+            w.document.write(html);
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+        }
+
+        function generateCashCountReport() {
+            const cashCounts = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+            if (cashCounts.length === 0) {
+                alert('No cash count records to generate report!');
+                return;
+            }
+
+            let html = '<html><head><title>Cash Count Report</title><style>body{font-family:Arial;margin:20px;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #999;padding:10px;text-align:left;}th{background:#F44336;color:white;}h2{color:#333;}</style></head><body>';
+            html += '<h2>Daily Cash Count Report - Tudawe Trading Co(Pvt)Ltd</h2>';
+            html += '<p>Generated on: ' + new Date().toLocaleString() + '</p>';
+            html += '<table><tr><th>Date</th><th>Counter Name</th><th>Total Counted</th><th>Variance from Float (250k)</th><th>Remarks</th></tr>';
+
+            cashCounts.forEach(record => {
+                const variance = record.totalCounted - 250000;
+                const sign = variance >= 0 ? '+' : '';
+                html += `<tr><td>${record.date}</td><td>${record.counterName}</td><td>Rs ${parseFloat(record.totalCounted).toFixed(2)}</td><td>${sign}Rs ${variance.toFixed(2)}</td><td>${record.remarks || '-'}</td></tr>`;
+            });
+
+            html += '</table>';
+            html += '</body></html>';
+
+            const w = window.open('', 'CashCountReport', 'height=800,width=1000');
+            w.document.write(html);
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+        }
+
+        // Update dashboard on load and every 5 seconds
+        window.addEventListener('load', function() {
+            const user = checkAuth();
+            if (user) {
+                document.getElementById('currentUser').textContent = `👤 ${user}`;
+                updateDashboard();
+                setInterval(updateDashboard, 5000);
+            }
+        });
+
+        // CSV / Backup helpers
+        function downloadFile(filename, content, mime) {
+            const blob = new Blob([content], { type: mime || 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function toCSV(rows) {
+            return rows.map(r => r.map(c => {
+                if (c === null || c === undefined) return '';
+                const s = String(c).replace(/"/g, '""');
+                return '"' + s + '"';
+            }).join(',')).join('\n');
+        }
+
+        function exportIOUCSV() {
+            const ious = JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]');
+            if (ious.length === 0) { alert('No IOUs to export'); return; }
+            const rows = [['Date','IOU Number','Person','Amount','Settled','SettledDate','Note']];
+            ious.forEach(i => rows.push([i.date||'', i.number||'', i.personName||'', i.amount||0, i.settled? 'Yes':'No', i.settledDate||'', i.note||'' ]));
+            downloadFile('ious.csv', toCSV(rows), 'text/csv');
+        }
+
+        function exportExpenseCSV() {
+            const expenses = JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]');
+            if (expenses.length === 0) { alert('No expenses to export'); return; }
+            const rows = [['Date','Description','Category','Amount','Reimbursed','ReimbursedDate','Note']];
+            expenses.forEach(e => rows.push([e.date||'', e.description||'', e.category||'', e.amount||0, e.reimbursed? 'Yes':'No', e.reimbursedDate||'', e.note||'' ]));
+            downloadFile('expenses.csv', toCSV(rows), 'text/csv');
+        }
+
+        function exportInvoiceCSV() {
+            const invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
+            if (invoices.length === 0) { alert('No invoices to export'); return; }
+            const rows = [['Date','Invoice Number','Customer','Amount','Status','PaymentMethod','DepositedDate','Note']];
+            invoices.forEach(i => rows.push([i.date||'', i.number||'', i.customerName||'', i.amount||0, i.status||'', i.paymentMethod||'', i.depositedDate||'', i.description||'' ]));
+            downloadFile('invoices.csv', toCSV(rows), 'text/csv');
+        }
+
+        function exportCashCountCSV() {
+            const cashCounts = JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]');
+            if (cashCounts.length === 0) { alert('No cash counts to export'); return; }
+            const rows = [['Date','CounterName','TotalCounted','Remarks']];
+            cashCounts.forEach(c => rows.push([c.date||'', c.counterName||'', c.totalCounted||0, c.remarks||'' ]));
+            downloadFile('cashcounts.csv', toCSV(rows), 'text/csv');
+        }
+
+        function exportAllBackup() {
+            const user = getCurrentUser();
+            const data = {
+                user: user,
+                ious: JSON.parse(localStorage.getItem(getStorageKey('ious')) || '[]'),
+                expenses: JSON.parse(localStorage.getItem(getStorageKey('expenses')) || '[]'),
+                invoices: JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]'),
+                cashCounts: JSON.parse(localStorage.getItem(getStorageKey('cashCounts')) || '[]'),
+                settings: {
+                    invoicePrefix: localStorage.getItem(getStorageKey('invoicePrefix')) || null,
+                    iouPrefix: localStorage.getItem(getStorageKey('iouPrefix')) || null
+                }
+            };
+            downloadFile('pettycash-backup-' + user + '-' + new Date().toISOString().slice(0,10) + '.json', JSON.stringify(data, null, 2), 'application/json');
+        }
+
+        // Expose expense/iou CSV buttons to UI handlers
+        window.exportExpenseCSV = exportExpenseCSV;
+        window.exportIOUCSV = exportIOUCSV;
+        window.exportInvoiceCSV = exportInvoiceCSV;
+        window.exportCashCountCSV = exportCashCountCSV;
+        window.exportAllBackup = exportAllBackup;
+    </script>
+</body>
+</html>

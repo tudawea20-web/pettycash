@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Petty Cash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-500 to-blue-700 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Tudawe Trading Co(Pvt)Ltd</h1>
+            <p class="text-gray-600">Petty Cash Management System</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+                <input type="text" id="username" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter username">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter password">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition">🔓 Login</button>
+        </form>
+
+        <!-- Info Message -->
+        <div class="mt-6 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+            <p><strong>Credentials:</strong> Only two users exist.</p>
+            <p class="font-mono mt-2">Username: <strong>admin</strong><br>Password: <strong>admin@123</strong></p>
+            <p class="font-mono mt-2">Username: <strong>cashier</strong><br>Password: <strong>cashier@123</strong></p>
+        </div>
+    </div>
+
+    <script>
+        function hashPassword(password) {
+            // Simple hash (NOT cryptographically secure - use for demo only)
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString();
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('_pettycash_users') || '{}');
+            const hashedPassword = hashPassword(password);
+
+            if (!users[username]) {
+                alert('User not found. Please create an account first.');
+                return;
+            }
+
+            if (users[username].password !== hashedPassword) {
+                alert('Incorrect password');
+                return;
+            }
+
+            // Login successful
+            localStorage.setItem('_pettycash_currentUser', username);
+            window.location.href = 'index.html';
+        });
+
+
+
+        // Ensure fixed user accounts exist
+        window.addEventListener('load', function() {
+            const users = JSON.parse(localStorage.getItem('_pettycash_users') || '{}');
+            if (!users['admin']) {
+                users['admin'] = {
+                    password: hashPassword('admin@123'),
+                    createdDate: new Date().toISOString()
+                };
+            }
+            if (!users['cashier']) {
+                users['cashier'] = {
+                    password: hashPassword('cashier@123'),
+                    createdDate: new Date().toISOString()
+                };
+            }
+            localStorage.setItem('_pettycash_users', JSON.stringify(users));
+        });
+    </script>
+</body>
+</html>
