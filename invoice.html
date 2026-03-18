@@ -250,7 +250,6 @@
 
                             ${inv.status === 'Pending Deposit' ? `<button onclick="completeDeposit(${index})" class="bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded text-xs mr-1">Deposit Now</button>` : ''}
                             ${inv.status === 'Deposited' ? `<button onclick="undoDeposit(${index})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs mr-1">Undo Deposit</button>` : ''}
-                            <button onclick="deleteInvoice(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -287,15 +286,6 @@
             document.getElementById('totalPaid').textContent = formatCurrency(totalDeposited);
             document.getElementById('totalPending').textContent = formatCurrency(totalPending);
             document.getElementById('remainingFloat').textContent = formatCurrency(remaining);
-        }
-
-        function deleteInvoice(index) {
-            if (confirm('Are you sure you want to delete this invoice?')) {
-                let invoices = JSON.parse(localStorage.getItem(getStorageKey('invoices')) || '[]');
-                invoices.splice(index, 1);
-                localStorage.setItem(getStorageKey('invoices'), JSON.stringify(invoices));
-                displayInvoices(document.getElementById('filterStatus').value);
-            }
         }
 
 
